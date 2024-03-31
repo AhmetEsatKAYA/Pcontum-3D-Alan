@@ -2,6 +2,7 @@
 #include <GL/freeglut.h>
 #include <cmath>
 #include "FreeImage.h"
+#include <vector>
 
 GLuint g_textureID;
 
@@ -30,27 +31,36 @@ float houseWidth = 4.0f;
 float houseHeight = 2.0f;
 float houseLength = 6.0f;
 
-void loadTexture() {
-    const char textName[] = "hali.png"; // PNG dosyasının yolu
-    FIBITMAP* dib = FreeImage_Load(FIF_PNG, textName, PNG_DEFAULT);
-    dib = FreeImage_ConvertTo32Bits(dib); // 32 bit RGBA format
-    if (dib != NULL) {
-        glGenTextures(1, &g_textureID);
-        glBindTexture(GL_TEXTURE_2D, g_textureID);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        BYTE* bits = new BYTE[FreeImage_GetWidth(dib) * FreeImage_GetHeight(dib) * 4];
-        BYTE* pixels = (BYTE*)FreeImage_GetBits(dib);
-        for (int pix = 0; pix < FreeImage_GetWidth(dib) * FreeImage_GetHeight(dib); pix++) {
-            bits[pix * 4 + 0] = pixels[pix * 4 + 2]; // Kırmızı
-            bits[pix * 4 + 1] = pixels[pix * 4 + 1]; // Yeşil
-            bits[pix * 4 + 2] = pixels[pix * 4 + 0]; // Mavi
-            bits[pix * 4 + 3] = pixels[pix * 4 + 3]; // Alfa (saydamlık)
+std::vector<GLuint> g_textureIDs; // Resimleri tutacak bir dizi tanımlayın
+
+void loadTextures() {
+    const char* textureNames[] = {"hali.png", "televizyon.png"}; // Yüklenecek resimlerin dosya adları
+    for (int i = 0; i < sizeof(textureNames) / sizeof(textureNames[0]); ++i) {
+        const char* textName = textureNames[i];
+        FIBITMAP* dib = FreeImage_Load(FIF_PNG, textName, PNG_DEFAULT);
+        dib = FreeImage_ConvertTo32Bits(dib); // 32 bit RGBA format
+        if (dib != NULL) {
+            GLuint textureID;
+            glGenTextures(1, &textureID);
+            glBindTexture(GL_TEXTURE_2D, textureID);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            BYTE* bits = new BYTE[FreeImage_GetWidth(dib) * FreeImage_GetHeight(dib) * 4];
+            BYTE* pixels = (BYTE*)FreeImage_GetBits(dib);
+            for (int pix = 0; pix < FreeImage_GetWidth(dib) * FreeImage_GetHeight(dib); pix++) {
+                bits[pix * 4 + 0] = pixels[pix * 4 + 2]; // Red
+                bits[pix * 4 + 1] = pixels[pix * 4 + 1]; // Green
+                bits[pix * 4 + 2] = pixels[pix * 4 + 0]; // Blue
+                bits[pix * 4 + 3] = pixels[pix * 4 + 3]; // Alpha (transparency)
+            }
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, FreeImage_GetWidth(dib), FreeImage_GetHeight(dib), 0, GL_RGBA, GL_UNSIGNED_BYTE, bits);
+            std::cout << textName << " loaded." << std::endl;
+            FreeImage_Unload(dib);
+            delete[] bits;
+
+            // Texture ID'sini vektöre ekle
+            g_textureIDs.push_back(textureID);
         }
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, FreeImage_GetWidth(dib), FreeImage_GetHeight(dib), 0, GL_RGBA, GL_UNSIGNED_BYTE, bits);
-        std::cout << textName << " yüklendi." << std::endl;
-        FreeImage_Unload(dib);
-        delete[] bits;
     }
 }
 
@@ -102,6 +112,19 @@ void drawHome(float ev_genislik, float ev_uzunluk, float ev_yukseklik, float ev_
     glVertex3f(ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + ev_z);
     glVertex3f(ev_genislik / 2.0f + ev_x, ev_y, -ev_uzunluk / 2.0f + ev_z);
     glEnd();
+    //Televizyon
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, g_textureIDs[1]);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y, -ev_uzunluk / 2.0f + (ev_z + 0.1f));
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + (ev_z + 0.1f));
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + (ev_z + 0.1f));
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y, -ev_uzunluk / 2.0f + (ev_z + 0.1f));
+    glEnd();
     // Arka duvar (Saydamlastirmak icin yorum satiri yapildi)
     /*
     glBegin(GL_QUADS);
@@ -144,7 +167,7 @@ void drawZemin(float ev_genislik, float ev_uzunluk, float ev_yukseklik, float ev
     glDisable(GL_LIGHTING);
     glPushMatrix();
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, g_textureID);
+    glBindTexture(GL_TEXTURE_2D, g_textureIDs[0]);
     glBegin(GL_QUADS);
     glTexCoord2f(0.0f, 0.0f);
     glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y, -ev_uzunluk / 2.0f + ev_z);
@@ -175,7 +198,6 @@ void setupLights() {
     glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
 }
 
-
 void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
@@ -195,10 +217,8 @@ void display() {
 
     drawHome(4.0f, 6.0f, 2.0f, 0.0f, 0.2f, 0.0f);
     drawZemin(4.0f, 6.0f, 2.0f, 0.0f, 0.2f, 0.0f);
-    loadTexture(); // Texture yükleme işlemi
     glutSwapBuffers();
 }
-
 
 void reshape(int w, int h) {
     glViewport(0, 0, w, h);
@@ -261,6 +281,8 @@ int main(int argc, char **argv) {
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glEnable(GL_COLOR_MATERIAL);
+
+    loadTextures(); // Texture yükleme işlemi
 
     glutMainLoop();
     return 0;

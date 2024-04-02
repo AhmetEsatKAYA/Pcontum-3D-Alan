@@ -15,16 +15,23 @@ Projemizde OpenGL kullandık. Bir ev ve birkaç tane ağaç çizdirdik.
 
 # Kontrol Tuşları
 w: Yukarı bak
+
 a: Sola bak
+
 s: Aşağı bak
+
 d: Sağa bak
 
 sağ ok: Sağa doğru yürü
+
 sol ok: Sola doğru yürü
+
 yukarı ok: İleriye doğru yürü
+
 aşağı ok: Geriye doğru yürü
 
 z: yukarı çık (drone modu)
+
 x: aşağı in
 # Resimler
 

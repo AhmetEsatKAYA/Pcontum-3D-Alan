@@ -32,14 +32,14 @@ Evin içi:
 ![Resim 1](/Images/1.png
 )
 Evin yüksekten dışı:
-![Resim 2](https://github.com/AhmetEsatKAYA/Pcontum-3D-Alan/blob/main/Images/2.png?raw=true
+![Resim 2](/Images/2.png
 )
 Evin yakınından yüksekten dışı:
-![Resim 3](https://github.com/AhmetEsatKAYA/Pcontum-3D-Alan/blob/main/Images/3.png?raw=true
+![Resim 3](/Images/3.png
 )
 Ağaçlar:
-![Resim 4](https://github.com/AhmetEsatKAYA/Pcontum-3D-Alan/blob/main/Images/4.png?raw=true
+![Resim 4](/Images/4.png
 )
 Evin karşıdan görünümü:
-![Resim 5](https://github.com/AhmetEsatKAYA/Pcontum-3D-Alan/blob/main/Images/5.png?raw=true
+![Resim 5](/Images/5.png
 )

@@ -19,22 +19,15 @@ float cameraPitch = 0.0f;
 float groundColor[3] = {0.0f, 0.6f, 0.0f}; // Yeşil
 
 // Ev duvar rengi
-float wallColor[4][3] = {
-    {0.9f, 0.9f, 0.9f}, // Tavan rengi
-    {0.7f, 0.7f, 0.7f}, // Duvar rengi 1
-    {0.65f, 0.65f, 0.65f}, // Duvar rengi 2
-    {0.7f, 0.7f, 0.7f} // Duvar rengi 3
+float wallColor[2][3] = {
+    {1.0f, 1.0f, 1.0f}, // Tavan rengi
+    {0.95f, 0.95f, 0.95f} // Duvar rengi
 };
-
-// Ev boyutları
-float houseWidth = 4.0f;
-float houseHeight = 2.0f;
-float houseLength = 6.0f;
 
 std::vector<GLuint> g_textureIDs; // Resimleri tutacak bir dizi tanımlayın
 
 void loadTextures() {
-    const char* textureNames[] = {"hali.png", "televizyon.png"}; // Yüklenecek resimlerin dosya adları
+    const char* textureNames[] = {"hali.png", "televizyon.png", "pcontum.png", "grass.png"}; // Yüklenecek resimlerin dosya adları
     for (int i = 0; i < sizeof(textureNames) / sizeof(textureNames[0]); ++i) {
         const char* textName = textureNames[i];
         FIBITMAP* dib = FreeImage_Load(FIF_PNG, textName, PNG_DEFAULT);
@@ -82,13 +75,19 @@ void drawTree(float x, float z) {
 }
 
 void drawGround() {
-    glColor3fv(groundColor);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, g_textureIDs[3]); // grass.png için uygun texture ID'si
     glBegin(GL_QUADS);
+    glTexCoord2f(0.0f, 0.0f);
     glVertex3f(-100.0f, 0.0f, -100.0f);
+    glTexCoord2f(100.0f, 0.0f); // Tek bir büyük kare olduğu için texture'ı tekrar etmeye gerek yok.
     glVertex3f(-100.0f, 0.0f, 100.0f);
+    glTexCoord2f(100.0f, 100.0f);
     glVertex3f(100.0f, 0.0f, 100.0f);
+    glTexCoord2f(0.0f, 100.0f);
     glVertex3f(100.0f, 0.0f, -100.0f);
     glEnd();
+    glDisable(GL_TEXTURE_2D);
 }
 
 void drawSky() {
@@ -101,74 +100,13 @@ void drawSky() {
     glEnable(GL_LIGHTING);
 }
 
-void drawHome(float ev_genislik, float ev_uzunluk, float ev_yukseklik, float ev_x, float ev_y, float ev_z) {
-    glDisable(GL_LIGHTING);
-    glPushMatrix();
-    glColor3fv(wallColor[2]); // Duvar rengi 1
-    // Ön duvar
-    glBegin(GL_QUADS);
-    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y, -ev_uzunluk / 2.0f + ev_z);
-    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + ev_z);
-    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + ev_z);
-    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y, -ev_uzunluk / 2.0f + ev_z);
-    glEnd();
-    //Televizyon
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, g_textureIDs[1]);
-    glBegin(GL_QUADS);
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y, -ev_uzunluk / 2.0f + (ev_z + 0.1f));
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + (ev_z + 0.1f));
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + (ev_z + 0.1f));
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y, -ev_uzunluk / 2.0f + (ev_z + 0.1f));
-    glEnd();
-    // Arka duvar (Saydamlastirmak icin yorum satiri yapildi)
-    /*
-    glBegin(GL_QUADS);
-    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y, ev_uzunluk / 2.0f + ev_z);
-    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, ev_uzunluk / 2.0f + ev_z);
-    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, ev_uzunluk / 2.0f + ev_z);
-    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y, ev_uzunluk / 2.0f + ev_z);
-    glEnd();
-    */
-    glColor3fv(wallColor[3]); // Duvar rengi 2
-    // Sol duvar
-    glBegin(GL_QUADS);
-    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y, -ev_uzunluk / 2.0f + ev_z);
-    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + ev_z);
-    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, ev_uzunluk / 2.0f + ev_z);
-    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y, ev_uzunluk / 2.0f + ev_z);
-    glEnd();
-    glColor3fv(wallColor[1]); // Duvar rengi 3
-    // Sağ duvar
-    glBegin(GL_QUADS);
-    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y, -ev_uzunluk / 2.0f + ev_z);
-    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + ev_z);
-    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, ev_uzunluk / 2.0f + ev_z);
-    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y, ev_uzunluk / 2.0f + ev_z);
-    glEnd();
-
-    glColor3fv(wallColor[0]); // Tavan rengi
-    // Üst duvar (Tavan)
-    glBegin(GL_QUADS);
-    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + ev_z);
-    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, ev_uzunluk / 2.0f + ev_z);
-    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, ev_uzunluk / 2.0f + ev_z);
-    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + ev_z);
-    glEnd();
-    glPopMatrix();
-    glEnable(GL_LIGHTING);
-}
-
 void drawZemin(float ev_genislik, float ev_uzunluk, float ev_yukseklik, float ev_x, float ev_y, float ev_z) {
     glDisable(GL_LIGHTING);
     glPushMatrix();
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, g_textureIDs[0]);
     glBegin(GL_QUADS);
+    glNormal3f(0.0f, 1.0f, 0.0f); // Resimi düzelt
     glTexCoord2f(0.0f, 0.0f);
     glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y, -ev_uzunluk / 2.0f + ev_z);
     glTexCoord2f(1.0f, 0.0f);
@@ -181,6 +119,85 @@ void drawZemin(float ev_genislik, float ev_uzunluk, float ev_yukseklik, float ev
     glDisable(GL_TEXTURE_2D);
     glPopMatrix();
     glEnable(GL_LIGHTING);
+}
+
+void drawHome(float ev_genislik, float ev_uzunluk, float ev_yukseklik, float ev_x, float ev_y, float ev_z, float duvark) {
+    glDisable(GL_LIGHTING);
+    glPushMatrix();
+
+    // Ön iç duvar
+    glColor3fv(wallColor[1]);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, g_textureIDs[1]);
+    glBegin(GL_QUADS);
+    glNormal3f(0.0f, 0.0f, 1.0f); // Resimi düzelt
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y, -ev_uzunluk / 2.0f + ev_z);
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y, -ev_uzunluk / 2.0f + ev_z);
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + ev_z);
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + ev_z);
+    glEnd();
+
+    // Ön dış duvar
+    /*glColor3fv(wallColor[1]); // Duvar rengi
+    glBegin(GL_QUADS);
+    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y, -ev_uzunluk / 2.0f + ev_z);
+    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + ev_z);
+    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + ev_z);
+    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y, -ev_uzunluk / 2.0f + ev_z);
+    glEnd();*/
+
+    // Arka duvar (Saydamlastirmak icin yorum satiri yapildi)
+    /*
+    glBegin(GL_QUADS);
+    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y, ev_uzunluk / 2.0f + ev_z);
+    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, ev_uzunluk / 2.0f + ev_z);
+    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, ev_uzunluk / 2.0f + ev_z);
+    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y, ev_uzunluk / 2.0f + ev_z);
+    glEnd();
+    */
+
+    // Sol duvar
+    glColor3fv(wallColor[1]); // Duvar rengi
+    glBegin(GL_QUADS);
+    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y, -ev_uzunluk / 2.0f + ev_z);
+    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y, ev_uzunluk / 2.0f + ev_z);
+    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, ev_uzunluk / 2.0f + ev_z);
+    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + ev_z);
+    glEnd();
+
+    // Sağ duvar
+    glColor3fv(wallColor[1]); // Duvar rengi
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, g_textureIDs[2]);
+    glBegin(GL_QUADS);
+    glNormal3f(1.0f, 0.0f, 0.0f); // Sağ duvar
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y, -ev_uzunluk / 2.0f + ev_z);
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y, ev_uzunluk / 2.0f + ev_z);
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, ev_uzunluk / 2.0f + ev_z);
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + ev_z);
+    glEnd();
+
+    // Üst duvar (Tavan)
+    glColor3fv(wallColor[0]); // Beyaz renk
+    glBegin(GL_QUADS);
+    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + ev_z);
+    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, ev_uzunluk / 2.0f + ev_z);
+    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, ev_uzunluk / 2.0f + ev_z);
+    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + ev_z);
+    glEnd();
+
+    glPopMatrix();
+    glEnable(GL_LIGHTING);
+    // Zemin
+    drawZemin(ev_genislik, ev_uzunluk, ev_yukseklik, ev_x, ev_y, ev_z);
 }
 
 void setupLights() {
@@ -196,7 +213,16 @@ void setupLights() {
     glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
     glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
+
+    // Genel ambiyans ışığı
+    GLfloat globalAmbient[] = { 0.5f, 0.5f, 0.5f, 1.0f }; // Daha yüksek bir değer
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, globalAmbient);
+
+    // Aydınlatmayı etkinleştirin
+    glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHTING);
 }
+
 
 void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -215,8 +241,7 @@ void display() {
     drawTree(-5.0f, -5.0f);
     drawTree(6.0f, 6.0f);
 
-    drawHome(4.0f, 6.0f, 2.0f, 0.0f, 0.2f, 0.0f);
-    drawZemin(4.0f, 6.0f, 2.0f, 0.0f, 0.2f, 0.0f);
+    drawHome(4.0f, 6.0f, 2.0f, 0.0f, 0.2f, 0.0f, 0.1f);
     glutSwapBuffers();
 }
 
@@ -244,6 +269,12 @@ void keyboard(unsigned char key, int x, int y) {
         break;
     case 'd':
         cameraYaw += 1.0f;
+        break;
+    case 'z':
+        cameraY += 0.1;
+        break;
+    case 'x':
+        cameraY -= 0.1;
         break;
     }
     glutPostRedisplay();

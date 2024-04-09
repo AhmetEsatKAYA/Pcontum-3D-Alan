@@ -15,9 +15,6 @@ float cameraZ = 5.0f;
 float cameraYaw = 0.0f;
 float cameraPitch = 0.0f;
 
-// Toprak rengi
-float groundColor[3] = {0.0f, 0.6f, 0.0f}; // Yeşil
-
 // Ev duvar rengi
 float wallColor[2][3] = {
     {1.0f, 1.0f, 1.0f}, // Tavan rengi
@@ -75,6 +72,9 @@ void drawTree(float x, float z) {
 }
 
 void drawGround() {
+    // Yer rengini beyaz olarak belirleyelim
+    glColor3f(1.0f, 1.0f, 1.0f); // Yer rengi (beyaz)
+
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, g_textureIDs[3]); // grass.png için uygun texture ID'si
     glBegin(GL_QUADS);
@@ -93,7 +93,7 @@ void drawGround() {
 void drawSky() {
     glDisable(GL_LIGHTING);
     glPushMatrix();
-    glColor3f(0.7f, 0.7f, 1.0f); // Açık mavi gökyüzü
+    glColor3f(36.0f / 255.0f, 137.0f / 255.0f, 207.0f / 255.0f); // Gökyüzü rengi (mavi)
     glTranslatef(0.0f, 100.0f, 0.0f);
     glutSolidSphere(300.0f, 20, 20);
     glPopMatrix();

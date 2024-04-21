@@ -6,14 +6,15 @@
 
 GLuint g_textureID;
 
-// Kamera pozisyonu
 float cameraX = 0.0f;
 float cameraY = 1.0f;
 float cameraZ = 5.0f;
 
 // Kameranın bakış açısı
-float cameraYaw = 0.0f;
-float cameraPitch = 0.0f;
+float cameraYaw = 0.0f; // Kamera yatay açısı
+float cameraPitch = 0.0f; // Kamera dikey açısı
+int lastMouseX = -1; // Son fare konumu (x)
+int lastMouseY = -1; // Son fare konumu (y)
 
 // Ev duvar rengi
 float wallColor[2][3] = {
@@ -21,13 +22,16 @@ float wallColor[2][3] = {
     {0.95f, 0.95f, 0.95f} // Duvar rengi
 };
 
+int windowWidth;
+int windowHeight;
 std::vector<GLuint> g_textureIDs; // Resimleri tutacak bir dizi tanımlayın
 
 void loadTextures() {
-    const char* textureNames[] = {"hali.png", "televizyon.png", "pcontum.png", "grass.png"}; // Yüklenecek resimlerin dosya adları
+    const char* textureNames[] = {"hali.png", "televizyon.png", "pcontum.png", "grass.png", "lake.jpeg"}; // Yüklenecek resimlerin dosya adları
+    const FREE_IMAGE_FORMAT formats[] = {FIF_PNG, FIF_PNG, FIF_PNG, FIF_PNG, FIF_JPEG}; // Resim formatları
     for (int i = 0; i < sizeof(textureNames) / sizeof(textureNames[0]); ++i) {
         const char* textName = textureNames[i];
-        FIBITMAP* dib = FreeImage_Load(FIF_PNG, textName, PNG_DEFAULT);
+        FIBITMAP* dib = FreeImage_Load(formats[i], textName);
         dib = FreeImage_ConvertTo32Bits(dib); // 32 bit RGBA format
         if (dib != NULL) {
             GLuint textureID;
@@ -52,6 +56,35 @@ void loadTextures() {
             g_textureIDs.push_back(textureID);
         }
     }
+}
+
+void drawLake(float lakeWidth, float lakeLength, float lakeX, float lakeY, float lakeZ) {
+    glColor3f(1.0f, 1.0f, 1.0f);
+
+    // Göl yüzeyinin yüksekliği
+    float lakeSurfaceY = 0.1f;
+
+    // Gölü çizin (doku kullanarak)
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, g_textureIDs[4]); // lake.jpeg için uygun texture ID'si
+
+    glBegin(GL_QUADS);
+    // Göldü tekrarlamak için uygun koordinatları kullanarak dokuyu çizin
+    for (float x = -lakeWidth / 2.0f + lakeX; x < lakeWidth / 2.0f + lakeX; x += 1.0f) {
+        for (float z = -lakeLength / 2.0f + lakeZ; z < lakeLength / 2.0f + lakeZ; z += 1.0f) {
+            glTexCoord2f(0.0f, 0.0f);
+            glVertex3f(x, lakeSurfaceY, z);
+            glTexCoord2f(1.0f, 0.0f);
+            glVertex3f(x + 1.0f, lakeSurfaceY, z);
+            glTexCoord2f(1.0f, 1.0f);
+            glVertex3f(x + 1.0f, lakeSurfaceY, z + 1.0f);
+            glTexCoord2f(0.0f, 1.0f);
+            glVertex3f(x, lakeSurfaceY, z + 1.0f);
+        }
+    }
+    glEnd();
+
+    glDisable(GL_TEXTURE_2D);
 }
 
 void drawTree(float x, float z) {
@@ -141,24 +174,15 @@ void drawHome(float ev_genislik, float ev_uzunluk, float ev_yukseklik, float ev_
     glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + ev_z);
     glEnd();
 
-    // Ön dış duvar
-    /*glColor3fv(wallColor[1]); // Duvar rengi
-    glBegin(GL_QUADS);
-    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y, -ev_uzunluk / 2.0f + ev_z);
-    glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + ev_z);
-    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, -ev_uzunluk / 2.0f + ev_z);
-    glVertex3f(ev_genislik / 2.0f + ev_x, ev_y, -ev_uzunluk / 2.0f + ev_z);
-    glEnd();*/
 
-    // Arka duvar (Saydamlastirmak icin yorum satiri yapildi)
-    /*
+    // Arka duvar
     glBegin(GL_QUADS);
     glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y, ev_uzunluk / 2.0f + ev_z);
     glVertex3f(-ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, ev_uzunluk / 2.0f + ev_z);
     glVertex3f(ev_genislik / 2.0f + ev_x, ev_y + ev_yukseklik, ev_uzunluk / 2.0f + ev_z);
     glVertex3f(ev_genislik / 2.0f + ev_x, ev_y, ev_uzunluk / 2.0f + ev_z);
     glEnd();
-    */
+    
 
     // Sol duvar
     glColor3fv(wallColor[1]); // Duvar rengi
@@ -241,7 +265,11 @@ void display() {
     drawTree(-5.0f, -5.0f);
     drawTree(6.0f, 6.0f);
 
-    drawHome(4.0f, 6.0f, 2.0f, 0.0f, 0.2f, 0.0f, 0.1f);
+    drawHome(5.0f, 5.0f, 2.0f, 0.0f, 0.2f, 0.0f, 0.1f);
+
+    // Evin yanına göl çizin
+    drawLake(8.0f, 5.0f, 2.0f, -1.5f, 6.0f);
+
     glutSwapBuffers();
 }
 
@@ -255,20 +283,22 @@ void reshape(int w, int h) {
 
 void keyboard(unsigned char key, int x, int y) {
     switch (key) {
-    case 27: // ESC tuşu programı kapatır
+    case 27:
         exit(0);
         break;
-    case 'w':
-        cameraPitch -= 1.0f;
+    case 'w': // İleri hareket
+        cameraX += 0.1f * sin(cameraYaw * M_PI / 180.0f);
+        cameraZ -= 0.1f * cos(cameraYaw * M_PI / 180.0f);
         break;
-    case 's':
-        cameraPitch += 1.0f;
+    case 's': // Geri hareket
+        cameraX -= 0.1f * sin(cameraYaw * M_PI / 180.0f);
+        cameraZ += 0.1f * cos(cameraYaw * M_PI / 180.0f);
         break;
     case 'a':
-        cameraYaw -= 1.0f;
+        cameraYaw -= 2.0f;
         break;
     case 'd':
-        cameraYaw += 1.0f;
+        cameraYaw += 2.0f;
         break;
     case 'z':
         cameraY += 0.1;
@@ -280,40 +310,50 @@ void keyboard(unsigned char key, int x, int y) {
     glutPostRedisplay();
 }
 
-void specialKeys(int key, int x, int y) {
-    switch (key) {
-    case GLUT_KEY_UP:
-        cameraZ -= 0.1f;
-        break;
-    case GLUT_KEY_DOWN:
-        cameraZ += 0.1f;
-        break;
-    case GLUT_KEY_LEFT:
-        cameraX -= 0.1f;
-        break;
-    case GLUT_KEY_RIGHT:
-        cameraX += 0.1f;
-        break;
+void mouseMove(int x, int y) {
+    windowWidth = glutGet(GLUT_SCREEN_WIDTH);
+    windowHeight = glutGet(GLUT_SCREEN_HEIGHT);
+    if (x < 0) x = 0;
+    if (x >= windowWidth) x = windowWidth - 1;
+    if (y < 0) y = 0;
+    if (y >= windowHeight) y = windowHeight - 1;
+
+    float deltaXAngle = 360.0f * ((float)(x - lastMouseX) / windowWidth);
+    deltaXAngle = deltaXAngle * 2;
+    float deltaYAngle = 360.0f * ((float)(y - lastMouseY) / windowHeight);
+
+    if (abs(deltaXAngle) > abs(deltaYAngle)) {
+        cameraYaw += deltaXAngle;
+        if (cameraYaw > 360.0f) cameraYaw -= 360.0f;
+        else if (cameraYaw < 0.0f) cameraYaw += 360.0f;
+    } else {
+        cameraPitch += deltaYAngle; 
+        if (cameraPitch > 90.0f) cameraPitch = 90.0f; // Yatayda tam dik açıya kadar döndür
+        else if (cameraPitch < -90.0f) cameraPitch = -90.0f; // Yatayda tam dik açıya kadar döndür
     }
+    lastMouseX = x;
+    lastMouseY = y;
+
     glutPostRedisplay();
 }
+
 
 int main(int argc, char **argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-    glutCreateWindow("3D Garden Navigation");
-    glutReshapeWindow(800, 600); // Pencere boyutunu ayarla
+    glutCreateWindow("Pcontum 3D Free Software");
+    glutFullScreen(); // Tam ekran yap
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
-    glutSpecialFunc(specialKeys);
+    glutPassiveMotionFunc(mouseMove);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glEnable(GL_COLOR_MATERIAL);
 
-    loadTextures(); // Texture yükleme işlemi
+    loadTextures();
 
     glutMainLoop();
     return 0;
